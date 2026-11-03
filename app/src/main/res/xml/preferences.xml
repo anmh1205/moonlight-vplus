@@ -850,6 +850,10 @@
             android:title="@string/title_touchpad_compatibility"
             android:summary="@string/summary_touchpad_compatibility"
             android:dialogMessage="@string/message_touchpad_compatibility" />
+        <com.limelight.preferences.TouchpadDiagnosticsPreference
+            android:key="touchpad_input_diagnostics"
+            android:title="@string/title_touchpad_diagnostics"
+            android:summary="@string/summary_touchpad_diagnostics" />
         <com.limelight.preferences.SeekBarPreference
             android:key="touchpad_pointer_speed"
             android:title="@string/title_touchpad_pointer_speed"

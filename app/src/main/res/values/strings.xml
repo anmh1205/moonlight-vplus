@@ -2468,4 +2468,7 @@ Tap again to replace it.</string>
     <string name="host_unlock_still_locked_message">The PIN may be wrong, or the lock screen is not asking for a PIN. Set up the PIN again?</string>
     <string name="host_unlock_reset_pin">Set up again</string>
     <string name="host_unlock_close">Close</string>
+    <string name="title_touchpad_diagnostics">Copy physical touchpad input trace</string>
+    <string name="summary_touchpad_diagnostics">After testing tap and two-finger scroll in a stream, return here and tap to copy the event trace.</string>
+    <string name="toast_touchpad_diagnostics_copied">Touchpad input trace copied</string>
 </resources>

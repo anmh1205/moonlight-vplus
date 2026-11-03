@@ -2176,4 +2176,7 @@
     <string name="summary_touchpad_pointer_speed">Скорость курсора на хосте в режиме совместимости. Значение 100% по умолчанию. Переподключитесь для применения.</string>
     <string name="title_touchpad_scroll_speed">Скорость прокрутки тачпада</string>
     <string name="summary_touchpad_scroll_speed">Скорость горизонтальной и вертикальной прокрутки совместимого тачпада. Значение 100% по умолчанию. Переподключитесь для применения.</string>
+    <string name="title_touchpad_diagnostics">Скопировать журнал событий тачпада</string>
+    <string name="summary_touchpad_diagnostics">После проверки касания и прокрутки двумя пальцами нажмите здесь, чтобы скопировать журнал событий.</string>
+    <string name="toast_touchpad_diagnostics_copied">Журнал событий тачпада скопирован</string>
 </resources>

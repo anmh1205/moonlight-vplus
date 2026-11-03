@@ -2389,4 +2389,7 @@
     <string name="host_unlock_still_locked_message">PIN 可能不正确，或锁屏界面当前不是 PIN 输入。要重新设置 PIN 吗？</string>
     <string name="host_unlock_reset_pin">重新设置</string>
     <string name="host_unlock_close">关闭</string>
+    <string name="title_touchpad_diagnostics">复制实体触控板事件记录</string>
+    <string name="summary_touchpad_diagnostics">在串流中测试轻触和双指滚动，然后返回此处点按以复制事件记录。</string>
+    <string name="toast_touchpad_diagnostics_copied">触控板事件记录已复制</string>
 </resources>

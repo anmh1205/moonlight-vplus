@@ -46,6 +46,7 @@ import com.limelight.binding.video.PerfOverlayListener
 import com.limelight.binding.video.PerformanceInfo
 import com.limelight.nvstream.NvConnection
 import com.limelight.binding.input.touchpad.TouchpadCompatibilityDevices
+import com.limelight.binding.input.touchpad.TouchpadInputDiagnostics
 import com.limelight.binding.input.touchpad.CompatibilityTouchpadDispatch
 import com.limelight.nvstream.StreamConfiguration
 import com.limelight.nvstream.Ds5HapticsPcmFrame
@@ -507,6 +508,7 @@ class Game : ThemedComponentActivity(), SurfaceHolder.Callback,
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             streamView.setOnCapturedPointerListener { _, event ->
+                TouchpadInputDiagnostics.record(this, event, "captured")
                 usbForwarding?.consumes(event.device) == true ||
                     touchInputHandler.handleMotionEvent(getMotionEventTargetView(), event)
             }
@@ -2287,6 +2289,7 @@ class Game : ThemedComponentActivity(), SurfaceHolder.Callback,
     private val compatibilityPointerDispatch = CompatibilityTouchpadDispatch()
 
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+        TouchpadInputDiagnostics.record(this, event, "touch")
         if (usbForwarding?.consumes(event.device) == true) return true
         if (event.actionMasked == MotionEvent.ACTION_DOWN) {
             compatibilityPointerDispatch.onTouchDown()
@@ -2319,6 +2322,7 @@ class Game : ThemedComponentActivity(), SurfaceHolder.Callback,
         compatibilityPointerDispatch.handleStream(event) { touchInputHandler.handleMotionEvent(view, it) }
 
     override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
+        TouchpadInputDiagnostics.record(this, event, "generic")
         if (usbForwarding?.consumes(event.device) == true) return true
         return dispatchCompatibilityPointer(event, touch = false) { super.dispatchGenericMotionEvent(it) }
     }

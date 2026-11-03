@@ -1165,4 +1165,7 @@
     <string name="host_unlock_still_locked_message">PIN 可能不正確，或鎖定畫面目前不是 PIN 輸入。要重新設定 PIN 嗎？</string>
     <string name="host_unlock_reset_pin">重新設定</string>
     <string name="host_unlock_close">關閉</string>
+    <string name="title_touchpad_diagnostics">複製實體觸控板事件記錄</string>
+    <string name="summary_touchpad_diagnostics">在串流中測試輕觸和雙指捲動，然後返回此處點按以複製事件記錄。</string>
+    <string name="toast_touchpad_diagnostics_copied">已複製觸控板事件記錄</string>
 </resources>
