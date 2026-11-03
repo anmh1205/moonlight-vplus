@@ -76,7 +76,9 @@ class CompatibilityTouchpadLifecycleTest {
             val config = PreferenceConfiguration()
             val connection = NvConnection(context, ComputerDetails.AddressTuple("127.0.0.1", 47989),
                 47984, "regression", "Regression", StreamConfiguration.Builder().build(),
-                PlatformBinding.getCryptoProvider(context), null)
+                PlatformBinding.getCryptoProvider(context), null,
+                (context.getSystemService(Context.DISPLAY_SERVICE) as android.hardware.display.DisplayManager)
+                    .getDisplay(android.view.Display.DEFAULT_DISPLAY))
             val sensitivityField = TouchInputHandler::class.java.getDeclaredField("touchpadSensitivity")
                 .apply { isAccessible = true }
             fun sensitivity() = sensitivityField.get(handler) as TouchpadSensitivity
