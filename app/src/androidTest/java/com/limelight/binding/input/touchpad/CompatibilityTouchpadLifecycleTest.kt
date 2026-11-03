@@ -2,6 +2,8 @@ package com.limelight.binding.input.touchpad
 
 import android.content.Context
 import android.content.ContextWrapper
+import android.hardware.display.DisplayManager
+import android.view.Display
 import android.view.PointerIcon
 import androidx.preference.PreferenceManager
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -74,9 +76,11 @@ class CompatibilityTouchpadLifecycleTest {
             val handler = TouchInputHandler(game)
             val view = StreamView(context)
             val config = PreferenceConfiguration()
+            val displayManager = context.getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
+            val outputDisplay = requireNotNull(displayManager.getDisplay(Display.DEFAULT_DISPLAY))
             val connection = NvConnection(context, ComputerDetails.AddressTuple("127.0.0.1", 47989),
                 47984, "regression", "Regression", StreamConfiguration.Builder().build(),
-                PlatformBinding.getCryptoProvider(context), null)
+                PlatformBinding.getCryptoProvider(context), null, outputDisplay)
             val sensitivityField = TouchInputHandler::class.java.getDeclaredField("touchpadSensitivity")
                 .apply { isAccessible = true }
             fun sensitivity() = sensitivityField.get(handler) as TouchpadSensitivity
