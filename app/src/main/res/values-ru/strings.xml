@@ -2169,4 +2169,11 @@
     <string name="summary_native_device_haptics_requires_output">Требуется эмуляция DualSense на хосте, расширенный IR, вывод на устройство или совместный вывод и сила вибрации устройства выше нуля. Для применения переподключитесь.</string>
     <string name="title_mic_test">Тест микрофона</string>
     <string name="summary_mic_test">Захватывает звук локального микрофона и показывает его форму волны без запуска трансляции.</string>
+    <string name="title_touchpad_compatibility">Совместимость тачпада</string>
+    <string name="summary_touchpad_compatibility">Выберите тачпад, который перестаёт работать при захвате указателя.</string>
+    <string name="message_touchpad_compatibility">Подключите тачпад и выберите его для поддержки касаний, прокрутки и жестов с несколькими пальцами. В режиме совместимости используется курсор хоста и не применяется захват указателя Android.</string>
+    <string name="title_touchpad_pointer_speed">Скорость указателя тачпада (совместимость)</string>
+    <string name="summary_touchpad_pointer_speed">Скорость курсора на хосте в режиме совместимости. Значение 100% по умолчанию. Переподключитесь для применения.</string>
+    <string name="title_touchpad_scroll_speed">Скорость прокрутки тачпада</string>
+    <string name="summary_touchpad_scroll_speed">Скорость горизонтальной и вертикальной прокрутки совместимого тачпада. Значение 100% по умолчанию. Переподключитесь для применения.</string>
 </resources>
