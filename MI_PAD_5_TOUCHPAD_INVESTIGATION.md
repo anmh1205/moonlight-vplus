@@ -44,3 +44,21 @@ alone only establishes build and test validity.
 - Artemis: https://github.com/ClassicOldSong/moonlight-android
 - Upstream compatibility PR: https://github.com/qiin2333/moonlight-vplus/pull/359
 - Xiaomi pointer-mode regression: https://github.com/qiin2333/moonlight-vplus/issues/384
+
+## Compare uncaptured vs streamed physical touchpad input (v2)
+The Settings > Input > Mouse page has **Test physical touchpad input (without streaming)**.
+This screen intentionally does not request pointer capture.
+1. Open it, press Clear event trace, test keyboard touchpad movement, tap, physical
+   click, two-finger scroll, two-finger tap. Press Copy Android touchpad event trace
+   and retain the text.
+2. Connect to the host, repeat these actions on the streamed desktop.
+3. Disconnect, return to Settings > Input > Mouse > Copy physical touchpad input trace.
+
+Compare device ID, descriptor hash, source, tool, classification, action, selected,
+STATE pointerInput and OUT send attempts. If the Android event exists only outside the
+stream, focus/pointer capture or local UI dispatch is the first divergent boundary.
+If it reaches the stream but has selected=false, device matching/activation is faulty.
+If it is selected and no OUT event follows, classification and gesture mapping are faulty.
+
+The diagnostic does NOT record keyboard keystrokes or raw touch coordinates.
+It does not prove that an attempted send was received by the host.

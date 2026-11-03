@@ -2471,4 +2471,8 @@ Tap again to replace it.</string>
     <string name="title_touchpad_diagnostics">Copy physical touchpad input trace</string>
     <string name="summary_touchpad_diagnostics">After testing tap and two-finger scroll in a stream, return here and tap to copy the event trace.</string>
     <string name="toast_touchpad_diagnostics_copied">Touchpad input trace copied</string>
+    <string name="title_touchpad_test_area">Test physical touchpad input (without streaming)</string>
+    <string name="summary_touchpad_test_area">Clear the event trace, then use the keyboard touchpad here: move, tap, double-tap, physical click, two-finger scroll and two-finger tap. Copy this trace before testing the same gestures inside a stream. No pointer coordinates or typed text are captured.</string>
+    <string name="action_touchpad_test_clear">Clear event trace</string>
+    <string name="action_touchpad_test_copy">Copy Android touchpad event trace</string>
 </resources>

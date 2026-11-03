@@ -2392,4 +2392,8 @@
     <string name="title_touchpad_diagnostics">复制实体触控板事件记录</string>
     <string name="summary_touchpad_diagnostics">在串流中测试轻触和双指滚动，然后返回此处点按以复制事件记录。</string>
     <string name="toast_touchpad_diagnostics_copied">触控板事件记录已复制</string>
+    <string name="title_touchpad_test_area">检测实体触控板输入（不串流）</string>
+    <string name="summary_touchpad_test_area">清空记录后使用键盘触控板测试移动、轻触、物理按键及双指滚动与轻触。复制记录后再到串流中测试。不会记录坐标和键入内容。</string>
+    <string name="action_touchpad_test_clear">清空事件记录</string>
+    <string name="action_touchpad_test_copy">复制 Android 触控板事件记录</string>
 </resources>

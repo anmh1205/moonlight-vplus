@@ -250,6 +250,11 @@
             <meta-data android:name="WindowManagerPreference:FreeformWindowOrientation" android:value="landscape" />
         </activity>
         <activity
+            android:name=".preferences.PhysicalTouchpadProbeActivity"
+            android:exported="false"
+            android:theme="@style/SettingsThemeCompat"
+            android:label="@string/title_touchpad_test_area" />
+        <activity
             android:name=".preferences.StreamSettings"
             android:theme="@style/SettingsThemeCompat"
             android:resizeableActivity="true"

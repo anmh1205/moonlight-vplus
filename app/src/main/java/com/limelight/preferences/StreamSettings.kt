@@ -2990,6 +2990,10 @@ class StreamSettings : ThemedAppCompatActivity() {
                 }
             }
             setPreferencesFromResource(R.xml.preferences, null)
+            findPreference<Preference>("touchpad_test_area")?.setOnPreferenceClickListener {
+                startActivity(Intent(requireContext(), PhysicalTouchpadProbeActivity::class.java))
+                true
+            }
             val screen = preferenceScreen
             replaceSearchableCategories(screen)
 

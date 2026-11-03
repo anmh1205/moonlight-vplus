@@ -100,6 +100,18 @@ object TouchpadInputDiagnostics {
     }
 
     @Synchronized
+    fun clear(context: Context) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().remove(KEY).apply()
+        lastMoveMs = 0L
+        lastMoveDevice = Int.MIN_VALUE
+        lastScrollMs = 0L
+        lastOutputMs = 0L
+        lastOutputName = ""
+        lastStateMs = 0L
+        lastState = ""
+    }
+
+    @Synchronized
     fun report(context: Context): String {
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         val selected = TouchpadCompatibilityDevices.selected(context)
