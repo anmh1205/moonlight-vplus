@@ -14,16 +14,18 @@ import com.limelight.BuildConfig
 object TouchpadInputDiagnostics {
     private const val PREFS = "touchpad_input_diagnostics"
     private const val KEY = "recent_events"
-    private const val MAX_LINES = 55
+    private const val MAX_LINES = 125
     private var lastMoveMs = 0L
     private var lastMoveDevice = Int.MIN_VALUE
     private var lastScrollMs = 0L
     private var lastOutputMs = 0L
     private var lastOutputName = ""
+    private var lastStateMs = 0L
+    private var lastState = ""
 
     @Synchronized
     fun record(context: Context, event: MotionEvent, stage: String) {
-        if (!BuildConfig.DEBUG) return
+        if (!BuildConfig.DEBUG && !BuildConfig.TOUCHPAD_TRACE_ENABLED) return
         val device = event.device
         val action = event.actionMasked
         // Sample continuous movement; always retain click, contacts, and scroll.
@@ -56,9 +58,35 @@ object TouchpadInputDiagnostics {
         prefs.edit().putString(KEY, (recent + line).joinToString("\n")).apply()
     }
 
+    /**
+     * Separates Android event delivery from stream ownership and pointer capture.
+     * Does not record motion coordinates or keyboard data.
+     */
+    @Synchronized
+    fun recordState(
+        context: Context,
+        grabbed: Boolean,
+        focus: Boolean,
+        capture: Boolean,
+        nativeMousePointer: Boolean,
+        nativeTouchpad: Boolean,
+    ) {
+        if (!BuildConfig.DEBUG && !BuildConfig.TOUCHPAD_TRACE_ENABLED) return
+        val state = "grab=$grabbed focus=$focus pointerInput=$capture " +
+            "nativeMousePointer=$nativeMousePointer nativeTouchpad=$nativeTouchpad"
+        val now = SystemClock.uptimeMillis()
+        if (state == lastState && now - lastStateMs < 1600L) return
+        lastState = state
+        lastStateMs = now
+        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val lines = prefs.getString(KEY, "")!!.lineSequence().filter { it.isNotBlank() }
+            .takeLastCompat(MAX_LINES - 1).toList()
+        prefs.edit().putString(KEY, (lines + "$now STATE $state").joinToString("\n")).apply()
+    }
+
     @Synchronized
     fun recordOutput(context: Context, eventName: String) {
-        if (!BuildConfig.DEBUG) return
+        if (!BuildConfig.DEBUG && !BuildConfig.TOUCHPAD_TRACE_ENABLED) return
         val now = SystemClock.uptimeMillis()
         if (eventName in setOf("Position", "Move", "Scroll", "Scroll(Android ACTION_SCROLL)") &&
             eventName == lastOutputName && now - lastOutputMs < 180L) return
@@ -81,6 +109,7 @@ object TouchpadInputDiagnostics {
                     "src=0x${dev.sources.toString(16)} virtual=${dev.isVirtual} selected=${dev.descriptor in selected}"
             }
         return "Moonlight V+ physical touchpad diagnostics (no coordinates or typed text)\n" +
+            "traceEnabled=${BuildConfig.DEBUG || BuildConfig.TOUCHPAD_TRACE_ENABLED}\n" +
             "Selected descriptors: ${selected.size}; Android API: ${Build.VERSION.SDK_INT}\n" +
             "Connected devices:\n$devices\nRecent input events (latest at bottom):\n" +
             (prefs.getString(KEY, "")?.ifBlank { "(none captured)" } ?: "(none captured)")

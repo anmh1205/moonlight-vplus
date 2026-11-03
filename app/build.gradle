@@ -53,6 +53,10 @@ android {
     namespace 'com.limelight'
 
     defaultConfig {
+        // The signed, isolated field-testing build must keep touchpad event diagnostics enabled.
+        // Normal distribution builds keep this disabled unless explicitly requested by CI.
+        buildConfigField "boolean", "TOUCHPAD_TRACE_ENABLED",
+            (System.getenv("TOUCHPAD_TRIAL_RELEASE") == "1" ? "true" : "false")
         minSdk 22
         targetSdk 35
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -221,8 +225,10 @@ android {
             // TL;DR: Leave the following line alone!
             // Use a distinct ID for trial releases so the signed test APK can coexist with V+.
             applicationIdSuffix (System.getenv("TOUCHPAD_TRIAL_RELEASE") == "1" ?
-                ".qiin.touchpadcompat" : ".qiin")
-            resValue "string", "app_label", audioHapticsAppLabel
+                ".qiin.touchpadprobe" : ".qiin")
+            resValue "string", "app_label",
+                (System.getenv("TOUCHPAD_TRIAL_RELEASE") == "1" ?
+                    "Moonlight V+ Touchpad Probe" : audioHapticsAppLabel)
             resValue "string", "app_label_root", "Moonlight (Root)"
 
             minifyEnabled true

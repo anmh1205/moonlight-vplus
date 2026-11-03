@@ -508,6 +508,7 @@ class Game : ThemedComponentActivity(), SurfaceHolder.Callback,
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             streamView.setOnCapturedPointerListener { _, event ->
+                tracePhysicalTouchpadInputState()
                 TouchpadInputDiagnostics.record(this, event, "captured")
                 usbForwarding?.consumes(event.device) == true ||
                     touchInputHandler.handleMotionEvent(getMotionEventTargetView(), event)
@@ -2288,7 +2289,20 @@ class Game : ThemedComponentActivity(), SurfaceHolder.Callback,
 
     private val compatibilityPointerDispatch = CompatibilityTouchpadDispatch()
 
+    private fun tracePhysicalTouchpadInputState() {
+        if (!::inputCaptureProvider.isInitialized) return
+        TouchpadInputDiagnostics.recordState(
+            this,
+            grabbedInput,
+            hasWindowFocus(),
+            inputCaptureProvider.isPointerInputActive(),
+            prefConfig.enableNativeMousePointer,
+            prefConfig.optimizeHardwareTouchpad
+        )
+    }
+
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+        tracePhysicalTouchpadInputState()
         TouchpadInputDiagnostics.record(this, event, "touch")
         if (usbForwarding?.consumes(event.device) == true) return true
         if (event.actionMasked == MotionEvent.ACTION_DOWN) {
@@ -2322,6 +2336,7 @@ class Game : ThemedComponentActivity(), SurfaceHolder.Callback,
         compatibilityPointerDispatch.handleStream(event) { touchInputHandler.handleMotionEvent(view, it) }
 
     override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
+        tracePhysicalTouchpadInputState()
         TouchpadInputDiagnostics.record(this, event, "generic")
         if (usbForwarding?.consumes(event.device) == true) return true
         return dispatchCompatibilityPointer(event, touch = false) { super.dispatchGenericMotionEvent(it) }
