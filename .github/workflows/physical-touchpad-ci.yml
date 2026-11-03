@@ -1,0 +1,85 @@
+name: Android Physical Touchpad Fix APK
+
+on:
+  push:
+    branches:
+      - fix/android-physical-touchpad
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-touchpad-debug:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    env:
+      AUDIO_HAPTICS_SDK_DIR: ${{ github.workspace }}/.deps/moonlight-audio-haptics
+      AUDIO_HAPTICS_SDK_REF: b3f97c3bb7500ea7b1985aea568e5c7b40308d3b
+    steps:
+      - name: Checkout patched V+ source and submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Checkout external haptics SDK
+        uses: actions/checkout@v4
+        with:
+          repository: AlkaidLab/moonlight-audio-haptics
+          ref: ${{ env.AUDIO_HAPTICS_SDK_REF }}
+          path: .deps/moonlight-audio-haptics
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Set up Android SDK and NDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-36 build-tools;36.0.0 ndk;28.2.13676358 cmake;3.22.1'
+
+      - name: Assemble signed NonRoot debug APK
+        shell: bash
+        run: |
+          set -o pipefail
+          chmod +x gradlew
+          python3 scripts/test_accent_palette.py
+          python3 scripts/generate_accent_variants.py --check
+          ./gradlew :app:assembleNonRootDebug --no-daemon --stacktrace 2>&1 | tee gradle-assemble.log
+
+      - name: Verify APK contents and checksum
+        if: success()
+        shell: bash
+        run: |
+          set -euo pipefail
+          apk="$(find app/build/outputs/apk/nonRoot/debug -maxdepth 1 -type f -name '*.apk' -print -quit)"
+          test -n "$apk"
+          unzip -Z1 "$apk" | grep -Fx 'AndroidManifest.xml'
+          unzip -Z1 "$apk" | grep -Eq '^classes[0-9]*[.]dex$'
+          cp "$apk" Moonlight-VPlus-Physical-Touchpad-Fix-debug.apk
+          sha256sum Moonlight-VPlus-Physical-Touchpad-Fix-debug.apk > SHA256SUMS.txt
+
+      - name: Run unit tests and compile Android instrumentation tests
+        shell: bash
+        run: |
+          set -o pipefail
+          ./gradlew :app:testNonRootDebugUnitTest :app:compileNonRootDebugAndroidTestKotlin --no-daemon --stacktrace 2>&1 | tee gradle-tests.log
+
+      - name: Upload APK, tests and diagnostic logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: moonlight-vplus-physical-touchpad-debug-${{ github.run_number }}
+          path: |
+            Moonlight-VPlus-Physical-Touchpad-Fix-debug.apk
+            SHA256SUMS.txt
+            gradle-assemble.log
+            gradle-tests.log
+            app/build/reports/tests/
+            app/build/test-results/
+          if-no-files-found: warn
+          retention-days: 14
