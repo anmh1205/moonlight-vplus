@@ -15,6 +15,14 @@ import org.junit.Test
 
 class ConfigurationSyncSchemaTest {
     @Test
+    fun compatibilityTouchpadSpeedsArePortableButDeviceSelectionIsLocal() {
+        assertTrue(ConfigurationSyncManager.isPortableDefaultPreferenceKey("touchpad_pointer_speed"))
+        assertTrue(ConfigurationSyncManager.isPortableDefaultPreferenceKey("touchpad_scroll_speed"))
+        assertFalse(ConfigurationSyncManager.isPortableDefaultPreferenceKey("touchpad_compatibility_devices"))
+        assertFalse("touchpad_compatibility" in ConfigurationSyncManager.portableSharedPreferenceNames())
+    }
+
+    @Test
     fun touchpadStoresAreObservedButActivePresetIsLocal() {
         val stores = ConfigurationSyncManager.portableSharedPreferenceNames()
         assertTrue(TouchpadInputPreferences.FILE_NAME in stores)
