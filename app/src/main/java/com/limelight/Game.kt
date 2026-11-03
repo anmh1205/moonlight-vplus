@@ -2267,7 +2267,6 @@ class Game : ThemedComponentActivity(), SurfaceHolder.Callback,
     }
 
     fun setInputGrabState(grab: Boolean) {
-        if (!grab && ::touchInputHandler.isInitialized) touchInputHandler.cancelCompatibilityTouchpad()
         if (grab && !prefConfig.enableNativeMousePointer) {
         if (!grab && ::touchInputHandler.isInitialized) touchInputHandler.cancelCompatibilityTouchpad()
             inputCaptureProvider.enableCapture()
