@@ -537,6 +537,13 @@
     <string name="mouse_axis_correction_180">Rotate 180 degrees</string>
     <string name="mouse_axis_correction_270">Rotate 270 degrees</string>
     <string name="title_optimize_hardware_touchpad">Tablet touchpad support</string>
+    <string name="title_touchpad_compatibility">Touchpad compatibility</string>
+    <string name="summary_touchpad_compatibility">Select touchpads that stop responding when the mouse is captured</string>
+    <string name="title_touchpad_pointer_speed">Touchpad pointer speed</string>
+    <string name="summary_touchpad_pointer_speed">Host cursor speed, including dragging. Devices without relative motion keep their system speed. 100% is the default. Reconnect to apply.</string>
+    <string name="title_touchpad_scroll_speed">Touchpad scroll speed</string>
+    <string name="summary_touchpad_scroll_speed">Horizontal and vertical scrolling speed for selected compatibility touchpads. 100% is the default. Reconnect to apply.</string>
+    <string name="message_touchpad_compatibility">Connect and select a touchpad to enable taps, scrolling, pinch and three-finger window switching on existing hosts. Using a compatibility touchpad switches this stream to the host cursor. Mouse capture is disabled while a selected device is connected. Gestures reserved by Android remain local.</string>
     <string name="summary_optimize_hardware_touchpad">Use dedicated event handling for supported tablet keyboard touchpads. Available in both root and non-root builds.</string>
     <string name="title_hardware_touchpad_pointer_speed">Touchpad pointer speed</string>
     <string name="summary_hardware_touchpad_pointer_speed">Adjust how quickly the tablet touchpad moves the pointer.</string>
