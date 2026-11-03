@@ -80,7 +80,10 @@ class AndroidNativePointerCaptureProvider(
     }
 
     override fun isPointerInputActive(): Boolean = isCapturingActive() ||
-        (isCapturing && !isCursorVisible && compatibilityMode && targetView.hasWindowFocus())
+        // Compatibility touchpads intentionally deliver regular Android motion events
+        // without pointer capture, even while the local cursor is visible.
+        // Gating this on isCursorVisible drops taps/scrolls after Ctrl+Alt+Shift+C.
+        (isCapturing && compatibilityMode && targetView.hasWindowFocus())
 
     private fun updateCapture() {
         compatibilityMode = TouchpadCompatibilityDevices.connected().any {

@@ -49,6 +49,12 @@ class CompatibilityCaptureTest {
                 assertFalse(fallback.isCapturingEnabled())
                 assertFalse(provider.isCapturingActive())
                 assertTrue(provider.isPointerInputActive())
+                // Regression: the cursor-visibility shortcut must not suspend
+                // compatibility-device motion while stream input is still grabbed.
+                provider.showCursor()
+                assertTrue(provider.isPointerInputActive())
+                provider.hideCursor()
+                assertTrue(provider.isPointerInputActive())
                 assertFalse(fallback.destroyed)
 
                 select("disconnected-device")
