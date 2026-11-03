@@ -163,12 +163,17 @@ class TouchInputHandler(private val game: Game) {
         if (!compatibilityDevice && !BuildConfig.ROOT_BUILD && game.prefConfig.optimizeHardwareTouchpad &&
             !hasStylusTool &&
             NonRootTouchpadHandler.isHardwareTouchpadEvent(event)) {
-            if (game.inputCaptureProvider.isCapturingActive()) {
+            // A native handler returning false means no host-side input was delivered.
+            // Never swallow that event: Apollo, standard Sunshine, and Android OEM
+            // devices can reject the custom touchpad protocol or expose no raw ranges.
+            val nativeForwarded = game.inputCaptureProvider.isCapturingActive() &&
                 nonRootTouchpadHandler.handleMotionEvent(event, game.conn)
-            } else {
-                nonRootTouchpadHandler.cancelAll(game.conn)
+            if (nativeForwarded) {
+                TouchpadInputDiagnostics.recordOutput(game, "NativeTouchpad forwarded")
+                return true
             }
-            return true
+            nonRootTouchpadHandler.cancelAll(game.conn)
+            TouchpadInputDiagnostics.recordOutput(game, "NativeTouchpad unsupported; fallback")
         }
 
         // 华为平板原生鼠标下的滚动逻辑
