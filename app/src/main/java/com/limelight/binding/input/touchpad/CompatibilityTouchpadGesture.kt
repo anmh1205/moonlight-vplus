@@ -61,21 +61,33 @@ internal class CompatibilityTouchpadGesture(
     }
 
     fun move(points: List<Point>): List<Action> {
-        if (mode == Mode.IDLE || mode == Mode.DRAIN ||
-            points.map { it.id } != start.map { it.id }) return emptyList()
-        if (points.indices.any { distance(points[it], start[it]) >= slop }) tapEligible = false
-        val center = center(points)
+        if (mode == Mode.IDLE || mode == Mode.DRAIN) return emptyList()
+
+        // MotionEvent pointer *indices* can reorder between frames. Pointer IDs are
+        // the stable identity. Reject missing/duplicate IDs and never emit a tap
+        // after losing contact identity (otherwise scroll can turn into a click).
+        val byId = points.associateBy { it.id }
+        if (byId.size != points.size || byId.size != start.size) {
+            tapEligible = false
+            return emptyList()
+        }
+        val orderedPoints = start.map { byId[it.id] ?: run {
+            tapEligible = false
+            return emptyList()
+        } }
+        if (orderedPoints.indices.any { distance(orderedPoints[it], start[it]) >= slop }) tapEligible = false
+        val center = center(orderedPoints)
         val origin = center(start)
         val travel = distance(center, origin)
-        val movesPointer = points.size == 1 && !singleContactScroll
-        if (points.size == 3) {
+        val movesPointer = orderedPoints.size == 1 && !singleContactScroll
+        if (orderedPoints.size == 3) {
             if (mode == Mode.SWITCH) {
                 val dx = center.x - center(last).x
                 // Reversing should take one step, not one step plus the unfinished
                 // distance accumulated in the previous direction.
                 if (dx * remainderX < 0f) remainderX = 0f
                 remainderX += dx
-                last = points
+                last = orderedPoints
                 val steps = (remainderX / (slop * 3)).toInt().coerceIn(-16, 16)
                 remainderX -= steps * slop * 3
                 return List(abs(steps)) { Action.Swipe(if (steps < 0) Direction.LEFT else Direction.RIGHT) }
@@ -83,14 +95,14 @@ internal class CompatibilityTouchpadGesture(
             if (travel < slop * 3) return emptyList()
             val dx = center.x - origin.x
             val dy = center.y - origin.y
-            last = points
+            last = orderedPoints
             mode = if (abs(dx) >= abs(dy)) Mode.SWITCH else Mode.DRAIN
             return listOf(Action.Swipe(if (abs(dx) >= abs(dy)) {
                 if (dx < 0) Direction.LEFT else Direction.RIGHT
             } else if (dy < 0) Direction.UP else Direction.DOWN))
         }
         if (mode == Mode.PENDING) {
-            val spanChange = if (points.size == 2) abs(span(points) - span(start)) else 0f
+            val spanChange = if (orderedPoints.size == 2) abs(span(orderedPoints) - span(start)) else 0f
             mode = when {
                 spanChange >= slop && spanChange > travel -> Mode.PINCH
                 travel >= slop -> if (abs(center.x - origin.x) > abs(center.y - origin.y))
@@ -102,7 +114,7 @@ internal class CompatibilityTouchpadGesture(
         }
         val actions = if (mode == Mode.PINCH) {
             val previousSpan = span(last)
-            val currentSpan = span(points)
+            val currentSpan = span(orderedPoints)
             if (previousSpan > 0f && currentSpan > 0f) zoom += ln((currentSpan / previousSpan).toDouble())
             val steps = (zoom / ZOOM_STEP).toInt().coerceIn(-16, 16)
             zoom -= steps * ZOOM_STEP
@@ -124,7 +136,7 @@ internal class CompatibilityTouchpadGesture(
                 else -> listOf(Action.Scroll(x.toShort(), y.toShort()))
             }
         }
-        last = points
+        last = orderedPoints
         return actions
     }
 

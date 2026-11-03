@@ -226,4 +226,18 @@ class CompatibilityTouchpadGestureTest {
         assertTrue(gesture.move(four).isEmpty())
         assertTrue(gesture.up(four, 100).isEmpty())
     }
+    @Test fun `reordered pointer indices still scroll with stable pointer ids`() {
+        val reversed = listOf(Point(1, 100f, 30f), Point(0, 0f, 30f))
+        gesture.down(two, 1000)
+        assertEquals(listOf(Action.Scroll(0, 30)), gesture.move(reversed))
+        assertTrue(gesture.up(reversed, 1100).none { it is Action.Click })
+    }
+
+    @Test fun `lost pointer identity cannot become an unintended tap`() {
+        gesture.down(two, 1000)
+        val alien = listOf(Point(0, 0f, 0f), Point(9, 100f, 0f))
+        assertTrue(gesture.move(alien).isEmpty())
+        assertTrue(gesture.up(alien, 1100).isEmpty())
+    }
+
 }
