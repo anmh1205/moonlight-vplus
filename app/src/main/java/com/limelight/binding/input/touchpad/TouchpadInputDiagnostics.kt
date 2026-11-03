@@ -75,7 +75,7 @@ object TouchpadInputDiagnostics {
     fun report(context: Context): String {
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         val selected = TouchpadCompatibilityDevices.selected(context)
-        val devices = InputDevice.getDeviceIds().mapNotNull { InputDevice.getDevice(it) }
+        val devices = InputDevice.getDeviceIds().asSequence().mapNotNull { InputDevice.getDevice(it) }
             .joinToString("\n") { dev ->
                 "device id=${dev.id} name=${dev.name.take(50)} desc=${dev.descriptor.hashCode().toUInt().toString(16)} " +
                     "src=0x${dev.sources.toString(16)} virtual=${dev.isVirtual} selected=${dev.descriptor in selected}"
