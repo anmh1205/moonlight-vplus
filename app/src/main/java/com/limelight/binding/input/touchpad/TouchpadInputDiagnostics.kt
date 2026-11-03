@@ -17,6 +17,9 @@ object TouchpadInputDiagnostics {
     private const val MAX_LINES = 55
     private var lastMoveMs = 0L
     private var lastMoveDevice = Int.MIN_VALUE
+    private var lastScrollMs = 0L
+    private var lastOutputMs = 0L
+    private var lastOutputName = ""
 
     @Synchronized
     fun record(context: Context, event: MotionEvent, stage: String) {
@@ -27,6 +30,10 @@ object TouchpadInputDiagnostics {
         val moving = action == MotionEvent.ACTION_MOVE || action == MotionEvent.ACTION_HOVER_MOVE
         val now = SystemClock.uptimeMillis()
         if (moving && event.deviceId == lastMoveDevice && now - lastMoveMs < 400L) return
+        if (action == MotionEvent.ACTION_SCROLL) {
+            if (now - lastScrollMs < 100L) return
+            lastScrollMs = now
+        }
         if (moving) {
             lastMoveMs = now
             lastMoveDevice = event.deviceId
@@ -52,10 +59,15 @@ object TouchpadInputDiagnostics {
     @Synchronized
     fun recordOutput(context: Context, eventName: String) {
         if (!BuildConfig.DEBUG) return
+        val now = SystemClock.uptimeMillis()
+        if (eventName in setOf("Position", "Move", "Scroll", "Scroll(Android ACTION_SCROLL)") &&
+            eventName == lastOutputName && now - lastOutputMs < 180L) return
+        lastOutputMs = now
+        lastOutputName = eventName
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         val recent = prefs.getString(KEY, "")!!.lineSequence().filter { it.isNotBlank() }
             .takeLastCompat(MAX_LINES - 1).toList()
-        val line = "${SystemClock.uptimeMillis()} OUT ${eventName.take(48)}"
+        val line = "$now OUT ${eventName.take(48)}"
         prefs.edit().putString(KEY, (recent + line).joinToString("\n")).apply()
     }
 
