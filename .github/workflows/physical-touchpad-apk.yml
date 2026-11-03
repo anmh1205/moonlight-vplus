@@ -1,11 +1,14 @@
-name: Physical touchpad compatibility APK
+name: Moonlight V+ Touchpad - signed trial APK
+
 on:
   push:
     branches:
       - fix/android13-physical-touchpad
   workflow_dispatch:
+
 permissions:
   contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -14,7 +17,7 @@ jobs:
       AUDIO_HAPTICS_SDK_REF: b3f97c3bb7500ea7b1985aea568e5c7b40308d3b
       AUDIO_HAPTICS_SDK_DIR: ${{ github.workspace }}/.deps/moonlight-audio-haptics
     steps:
-      - name: Checkout with submodules
+      - name: Checkout project and submodules
         uses: actions/checkout@v4
         with:
           submodules: recursive
@@ -34,17 +37,56 @@ jobs:
         uses: android-actions/setup-android@v3
         with:
           packages: 'platform-tools platforms;android-36 build-tools;36.0.0 ndk;28.2.13676358 cmake;3.22.1'
-      - name: Build APK
+      - name: Run JVM tests and compile Android instrumentation tests
         run: |
           chmod +x gradlew
-          ./gradlew :app:assembleNonRootDebug --no-daemon --stacktrace
-      - name: Compile tests and execute JVM unit tests
-        run: ./gradlew :app:testNonRootDebugUnitTest :app:compileNonRootDebugAndroidTestKotlin --no-daemon --stacktrace
-      - name: Upload APK
+          ./gradlew :app:testNonRootDebugUnitTest :app:compileNonRootDebugAndroidTestKotlin --no-daemon --stacktrace
+      - name: Generate ephemeral signing identity for standalone test release
+        shell: bash
+        run: |
+          set -euo pipefail
+          STOREPASS="$(openssl rand -hex 24)"
+          echo "::add-mask::$STOREPASS"
+          KEYSTORE_PATH="$RUNNER_TEMP/moonlight-touchpad-trial.p12"
+          keytool -genkeypair -noprompt -keystore "$KEYSTORE_PATH" \
+            -storetype PKCS12 -storepass "$STOREPASS" -keypass "$STOREPASS" \
+            -alias touchpad-trial -keyalg RSA -keysize 3072 -validity 365 \
+            -dname "CN=Moonlight VPlus Touchpad Trial, OU=CI, O=Experimental Build, C=US"
+          {
+            echo "KEYSTORE_PATH=$KEYSTORE_PATH"
+            echo "KEYSTORE_PASSWORD=$STOREPASS"
+            echo "KEY_ALIAS=touchpad-trial"
+            echo "KEY_PASSWORD=$STOREPASS"
+            echo "TOUCHPAD_TRIAL_RELEASE=1"
+          } >> "$GITHUB_ENV"
+      - name: Build signed nonRoot Release APK (separate application ID)
+        run: ./gradlew :app:assembleNonRootRelease --no-daemon --stacktrace
+      - name: Verify APK signature and produce deliverable
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p out
+          APK="$(find app/build/outputs/apk/nonRoot/release -maxdepth 1 -type f -name '*.apk' -print -quit)"
+          test -n "$APK"
+          "${ANDROID_HOME}/build-tools/36.0.0/apksigner" verify --verbose --print-certs "$APK"
+          "${ANDROID_HOME}/build-tools/36.0.0/aapt" dump badging "$APK" | head -n 4
+          unzip -Z1 "$APK" | grep -qx 'AndroidManifest.xml'
+          unzip -Z1 "$APK" | grep -Eq '^classes([0-9]+)?\.dex$'
+          OUTPUT=out/Moonlight-VPlus-12.14.4-TouchpadCompat-Release-Trial.apk
+          cp "$APK" "$OUTPUT"
+          sha256sum "$OUTPUT" > out/SHA256SUMS.txt
+          {
+            echo "commit=${GITHUB_SHA}"
+            echo "variant=nonRootRelease"
+            echo "application_id=com.limelight.qiin.touchpadcompat"
+            echo "signing=ephemeral-test-certificate"
+            echo "note=Not upgrade-compatible with other builds. Uninstall old trial before replacing."
+          } > out/BUILD_INFO.txt
+      - name: Upload signed installable APK
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: moonlight-vplus-touchpad-debug
-          path: app/build/outputs/apk/nonRoot/debug/*.apk
+          name: moonlight-vplus-touchpad-RELEASE-TRIAL
+          path: out/
           if-no-files-found: warn
           retention-days: 14
