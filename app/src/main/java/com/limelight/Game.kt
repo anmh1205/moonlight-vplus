@@ -2267,8 +2267,9 @@ class Game : ThemedComponentActivity(), SurfaceHolder.Callback,
     }
 
     fun setInputGrabState(grab: Boolean) {
-        if (grab && !prefConfig.enableNativeMousePointer) {
+        // Release synthetic click and gesture state when the stream loses input ownership.
         if (!grab && ::touchInputHandler.isInitialized) touchInputHandler.cancelCompatibilityTouchpad()
+        if (grab && !prefConfig.enableNativeMousePointer) {
             inputCaptureProvider.enableCapture()
             if (cursorVisible) {
                 inputCaptureProvider.showCursor()
