@@ -4,13 +4,6 @@ on:
   push:
     branches:
       - fix/android-physical-touchpad
-  pull_request:
-    branches:
-      - master
-    types:
-      - opened
-      - synchronize
-      - reopened
   workflow_dispatch:
 
 permissions:
@@ -49,14 +42,14 @@ jobs:
         with:
           packages: 'platform-tools platforms;android-36 build-tools;36.0.0 ndk;28.2.13676358 cmake;3.22.1'
 
-      - name: Build debug APK and run JVM/instrumentation compilation
+      - name: Assemble signed NonRoot debug APK
         shell: bash
         run: |
           set -o pipefail
           chmod +x gradlew
           python3 scripts/test_accent_palette.py
           python3 scripts/generate_accent_variants.py --check
-          ./gradlew :app:testNonRootDebugUnitTest :app:compileNonRootDebugAndroidTestKotlin :app:assembleNonRootDebug --no-daemon --stacktrace 2>&1 | tee gradle-touchpad-ci.log
+          ./gradlew :app:assembleNonRootDebug --no-daemon --stacktrace 2>&1 | tee gradle-assemble.log
 
       - name: Verify APK contents and checksum
         if: success()
@@ -70,6 +63,12 @@ jobs:
           cp "$apk" Moonlight-VPlus-Physical-Touchpad-Fix-debug.apk
           sha256sum Moonlight-VPlus-Physical-Touchpad-Fix-debug.apk > SHA256SUMS.txt
 
+      - name: Run unit tests and compile Android instrumentation tests
+        shell: bash
+        run: |
+          set -o pipefail
+          ./gradlew :app:testNonRootDebugUnitTest :app:compileNonRootDebugAndroidTestKotlin --no-daemon --stacktrace 2>&1 | tee gradle-tests.log
+
       - name: Upload APK, tests and diagnostic logs
         if: always()
         uses: actions/upload-artifact@v4
@@ -78,7 +77,8 @@ jobs:
           path: |
             Moonlight-VPlus-Physical-Touchpad-Fix-debug.apk
             SHA256SUMS.txt
-            gradle-touchpad-ci.log
+            gradle-assemble.log
+            gradle-tests.log
             app/build/reports/tests/
             app/build/test-results/
           if-no-files-found: warn
