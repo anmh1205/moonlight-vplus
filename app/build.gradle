@@ -219,7 +219,9 @@ android {
             // is to please change the applicationId before you publish.
             //
             // TL;DR: Leave the following line alone!
-            applicationIdSuffix ".qiin"
+            // Use a distinct ID for trial releases so the signed test APK can coexist with V+.
+            applicationIdSuffix (System.getenv("TOUCHPAD_TRIAL_RELEASE") == "1" ?
+                ".qiin.touchpadcompat" : ".qiin")
             resValue "string", "app_label", audioHapticsAppLabel
             resValue "string", "app_label_root", "Moonlight (Root)"
 
