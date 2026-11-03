@@ -8,10 +8,16 @@ import com.limelight.binding.input.MouseAxisCorrection
 import com.limelight.binding.input.evdev.EvdevCaptureProviderShim
 import com.limelight.binding.input.evdev.EvdevListener
 import com.limelight.preferences.PreferenceConfiguration
+import com.limelight.binding.input.touchpad.TouchpadCompatibilityDevices
 
 object InputCaptureManager {
     fun getInputCaptureProvider(activity: Activity, rootListener: EvdevListener): InputCaptureProvider {
         return when {
+            AndroidNativePointerCaptureProvider.isCaptureProviderSupported() &&
+                TouchpadCompatibilityDevices.selected(activity).isNotEmpty() ->
+                AndroidNativePointerCaptureProvider(activity, activity.findViewById(R.id.surfaceView),
+                    if (EvdevCaptureProviderShim.isCaptureProviderSupported())
+                        createEvdevCaptureProvider(activity, rootListener) else null)
             EvdevCaptureProviderShim.isCaptureProviderSupported() -> {
                 LimeLog.info("Using Evdev mouse capture")
                 createEvdevCaptureProvider(activity, rootListener)
@@ -44,7 +50,8 @@ object InputCaptureManager {
      */
     fun getInputCaptureProviderForExternalDisplay(activity: Activity, rootListener: EvdevListener): InputCaptureProvider {
         // 外接显示器模式下，优先使用Evdev捕获，因为它对多显示器支持更好
-        return if (EvdevCaptureProviderShim.isCaptureProviderSupported()) {
+        return if (EvdevCaptureProviderShim.isCaptureProviderSupported() &&
+            TouchpadCompatibilityDevices.selected(activity).isEmpty()) {
             LimeLog.info("Using Evdev mouse capture for external display")
             createEvdevCaptureProvider(activity, rootListener)
         } else {
