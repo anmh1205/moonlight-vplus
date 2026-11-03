@@ -50,6 +50,16 @@ object TouchpadInputDiagnostics {
     }
 
     @Synchronized
+    fun recordOutput(context: Context, eventName: String) {
+        if (!BuildConfig.DEBUG) return
+        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val recent = prefs.getString(KEY, "")!!.lineSequence().filter { it.isNotBlank() }
+            .takeLastCompat(MAX_LINES - 1).toList()
+        val line = "${SystemClock.uptimeMillis()} OUT ${eventName.take(48)}"
+        prefs.edit().putString(KEY, (recent + line).joinToString("\n")).apply()
+    }
+
+    @Synchronized
     fun report(context: Context): String {
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         val selected = TouchpadCompatibilityDevices.selected(context)

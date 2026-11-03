@@ -22,6 +22,7 @@ import com.limelight.binding.input.touch.TouchContext
 import com.limelight.binding.input.touchpad.NonRootTouchpadHandler
 import com.limelight.binding.input.touchpad.TouchpadPointerSpeed
 import com.limelight.binding.input.touchpad.CompatibilityTouchpadGesture
+import com.limelight.binding.input.touchpad.TouchpadInputDiagnostics
 import com.limelight.binding.input.touchpad.CompatibilityTouchpadHandler
 import com.limelight.binding.input.touchpad.TouchpadCompatibilityDevices
 import com.limelight.binding.input.touchpad.TouchpadSensitivity
@@ -1509,6 +1510,9 @@ class TouchInputHandler(private val game: Game) {
     fun destroyCompatibilityTouchpad() = compatibilityTouchpad.destroy()
 
     private fun sendMouseScroll(event: MotionEvent) {
+        if (TouchpadCompatibilityDevices.contains(game, event.device)) {
+            TouchpadInputDiagnostics.recordOutput(game, "Scroll(Android ACTION_SCROLL)")
+        }
         val x = event.getAxisValue(MotionEvent.AXIS_HSCROLL) * 120
         val y = event.getAxisValue(MotionEvent.AXIS_VSCROLL) * 120
         if (TouchpadCompatibilityDevices.contains(game, event.device)) {
@@ -1533,6 +1537,17 @@ class TouchInputHandler(private val game: Game) {
             return
         }
         val conn = game.conn ?: return
+        val eventName = when (action) {
+            is CompatibilityTouchpadGesture.Action.Click -> "Click(${action.fingers})"
+            is CompatibilityTouchpadGesture.Action.Button -> "Button(${if (action.down) "down" else "up"})"
+            is CompatibilityTouchpadGesture.Action.Scroll -> "Scroll"
+            is CompatibilityTouchpadGesture.Action.Move -> "Move"
+            is CompatibilityTouchpadGesture.Action.Position -> "Position"
+            is CompatibilityTouchpadGesture.Action.Zoom -> "Zoom"
+            is CompatibilityTouchpadGesture.Action.Swipe -> "Swipe"
+            is CompatibilityTouchpadGesture.Action.EndSwitch -> "EndSwitch"
+        }
+        TouchpadInputDiagnostics.recordOutput(game, eventName)
         game.cursorServiceManager.useHostCursorForCompatibility()
         when (action) {
             is CompatibilityTouchpadGesture.Action.Position -> {
